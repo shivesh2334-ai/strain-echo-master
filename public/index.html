@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StrainEcho Master - Clinical Strain Echocardiography Learning Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -10px rgba(96, 165, 250, 0.3);
+        }
+        
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+        }
+        
+        .video-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+        }
+        
+        .tip-card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #60a5fa;
+        }
+        
+        .institution-badge {
+            background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+        }
+        
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scroll-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        
+        // Comprehensive data structure based on the mind map
+        const strainData = {
+            "Technology Updates": {
+                color: "from-blue-500 to-cyan-400",
+                icon: "Cpu",
+                description: "Latest advances in strain imaging technology and standardization",
+                topics: {
+                    "Strain Standardization Task Force": {
+                        tips: [
+                            "Use midwall/full-wall preferred method for consistency across vendors",
+                            "Reduce intervendor variability by following ASE/EACVI guidelines",
+                            "Maintain software version consistency within your institution",
+                            "Document software version in all reports for longitudinal comparison"
+                        ],
+                        videos: [
+                            {
+                                title: "ASE Strain Standardization Guidelines",
+                                source: "ASE360 Official",
+                                url: "https://www.youtube.com/watch?v=qbmhyucnY5I",
+                                duration: "45 min",
+                                type: "Lecture",
+                                free: true
+                            },
+                            {
+                                title: "Strain Imaging - Common Errors and Artifacts",
+                                source: "Cleveland Clinic / ASE",
+                                url: "https://www.dicardiology.com/videos/video-strain-imaging-common-errors-and-artifacts",
+                                duration: "30 min",
+                                type: "Case-Based",
+                                free: true
+                            }
+                        ]
+                    },
+                    "STE vs TDI": {
+                        tips: [
+                            "STE (Speckle Tracking): Best for rapid chamber evaluation and GLS",
+                            "TDI (Tissue Doppler): Use when superior temporal resolution is needed",
+                            "STE is preferred for Global Longitudinal Strain (GLS) measurements",
+                            "Understand the technical differences: STE tracks speckles, TDI measures velocity"
+                        ],
+                        videos: [
+                            {
+                                title: "Tissue Doppler and Strain Imaging Fundamentals",
+                                source: "ASE360",
+                                url: "https://www.youtube.com/watch?v=qbmhyucnY5I",
+                                duration: "60 min",
+                                type: "Comprehensive Lecture",
+                                free: true
+                            },
+                            {
+                                title: "Strain Fundamentals Made Easy",
+                                source: "ASE / Ramathibodi Hospital",
+                                url: "https://www.dicardiology.com/videos/video-echocardiography-strain-fundamentals-made-easy",
+                                duration: "25 min",
+                                type: "Tutorial",
+                                free: true
+                            }
+                        ]
+                    },
+                    "Technical Pitfalls": {
+                        tips: [
+                            "Avoid apical foreshortening - ensure true apical views",
+                            "Ensure adequate endocardial tracking - adjust ROI if needed",
+                            "Watch for ROI size errors - too large or small affects accuracy",
+                            "Pay attention to timing of AVC (Aortic Valve Closure) and MVC (Mitral Valve Closure)",
+                            "Frame rate optimization: 40-80 fps ideal for STE"
+                        ],
+                        videos: [
+                            {
+                                title: "Strain Imaging - Common Errors and Artifacts",
+                                source: "Cleveland Clinic / ASE 2016",
+                                url: "https://www.dicardiology.com/videos/video-strain-imaging-common-errors-and-artifacts",
+                                duration: "35 min",
+                                type: "Expert Lecture",
+                                free: true
+                            },
+                            {
+                                title: "Technical Quality Control in Strain Imaging",
+                                source: "ASE Learning Hub",
+                                url: "https://www.asecho.org/practice-clinical-resources/resource-library/strain-imaging/",
+                                duration: "Module-based",
+                                type: "CME Course",
+                                free: false
+                            }
+                        ]
+                    }
+                }
+            },
+            "Normal Ranges (LLN)": {
+                color: "from-emerald-500 to-teal-400",
+                icon: "Activity",
+                description: "Reference values and factors affecting strain measurements",
+                topics: {
+                    "LV Myocardial GLS": {
+                        tips: [
+                            "Normal GLS: > -18% (more negative is better)",
+                            "Values between -18% and -15% suggest mild impairment",
+                            "Values > -15% (less negative) indicate significant dysfunction",
+                            "Remember: GLS is a negative number - don't forget the minus sign!"
+                        ],
+                        videos: [
+                            {
+                                title: "Normal Strain Values and Clinical Application",
+                                source: "Mayo Clinic 2024",
+                                url: "https://www.youtube.com/watch?v=VHM4_QGlBEE",
+                                duration: "40 min",
+                                type: "Clinical Application",
+                                free: true
+                            }
+                        ]
+                    },
+                    "RV Free Wall LS": {
+                        tips: [
+                            "Men: -20% (normal lower limit)",
+                            "Women: -21% (normal lower limit)",
+                            "Free wall only (segments: basal, mid, apical)",
+                            "RV strain is more variable than LV - ensure good image quality"
+                        ],
+                        videos: [
+                            {
+                                title: "Right Ventricular Strain Assessment",
+                                source: "ASE Guidelines",
+                                url: "https://www.asecho.org/practice-clinical-resources/resource-library/strain-imaging/",
+                                duration: "20 min",
+                                type: "Guideline Review",
+                                free: true
+                            }
+                        ]
+                    },
+                    "LA Reservoir Strain": {
+                        tips: [
+                            "Normal range: 23% to 60%",
+                            "Lower values indicate reduced atrial compliance",
+                            "Useful in HFpEF and atrial fibrillation assessment",
+                            "Measure at end-ventricular systole (maximal LA volume)"
+                        ],
+                        videos: [
+                            {
+                                title: "Left Atrial Strain: Technique and Application",
+                                source: "ASE Learning Hub",
+                                url: "https://www.asecho.org/practice-clinical-resources/resource-library/strain-imaging/",
+                                duration: "25 min",
+                                type: "How-To",
+                                free: false
+                            }
+                        ]
+                    },
+                    "Factors Affecting Strain": {
+                        tips: [
+                            "Age: Strain decreases with age (normal aging)",
+                            "Gender: Women typically have higher (more negative) GLS than men",
+                            "Loading conditions: Preload and afterload affect strain values",
+                            "Blood pressure: Acute changes can alter strain readings",
+                            "Heart rate: Very high rates may reduce accuracy"
+                        ],
+                        videos: [
+                            {
+                                title: "Physiological Variation in Strain Imaging",
+                                source: "ASE Textbook Chapter",
+                                url: "https://www.asecho.org/practice-clinical-resources/resource-library/strain-imaging/",
+                                duration: "Text-based",
+                                type: "Reference",
+                                free: false
+                            }
+                        ]
+                    }
+                }
+            },
+            "Clinical Applications": {
+                color: "from-purple-500 to-pink-400",
+                icon: "HeartPulse",
+                description: "Practical application of strain imaging in various cardiac conditions",
+                topics: {
+                    "Heart Failure": {
+                        tips: [
+                            "Stage B (Pre-heart failure): Use strain for early detection, especially in amyloidosis",
+                            "HFrEF: Monitor prognosis and LVEF trajectory - strain predicts recovery",
+                            "HFpEF: Diagnostic aid and risk stratification - GLS often reduced despite normal EF",
+                            "Strain is more sensitive than EF for detecting early dysfunction"
+                        ],
+                        videos: [
+                            {
+                                title: "Strain in Heart Failure: From HFrEF to HFpEF",
+                                source: "ASE360 Conference",
+                                url: "https://www.youtube.com/playlist?list=PLp9M4x8WmO70PAoMoKADjNp0vMxcM7gE7",
+                                duration: "50 min",
+                                type: "Joint Echo Conference",
+                                free: true
+                            },
+                            {
+                                title: "Applying Strain in Practice – Chemotherapy and Beyond",
+                                source: "Mayo Clinic 2024",
+                                url: "https://www.youtube.com/watch?v=VHM4_QGlBEE",
+                                duration: "45 min",
+                                type: "Clinical Cases",
+                                free: true
+                            }
+                        ]
+                    },
+                    "Cardio-Oncology": {
+                        tips: [
+                            "Baseline assessment is MANDATORY before starting cardiotoxic therapy",
+                            "Subclinical toxicity: Look for >12-15% relative drop from baseline",
+                            "Absolute drop >3% may also indicate early toxicity",
+                            "Use strain to guide cardioprotective therapy initiation (ACEi/ARB, beta-blockers)",
+                            "Monitor serially during treatment and follow-up"
+                        ],
+                        videos: [
+                            {
+                                title: "Strain in Cardio-Oncology: 2024 Update",
+                                source: "Mayo Clinic",
+                                url: "https://www.youtube.com/watch?v=VHM4_QGlBEE",
+                                duration: "40 min",
+                                type: "Clinical Practice",
+                                free: true
+                            },
+                            {
+                                title: "ASE Comprehensive Strain Imaging - Cardiotoxicity Chapter",
+                                source: "ASE Learning Hub",
+                                url: "https://www.asecho.org/practice-clinical-resources/resource-library/strain-imaging/",
+                                duration: "Chapter review",
+                                type: "Textbook",
+                                free: false
+                            }
+                        ]
+                    },
+                    "Ischemic Heart Disease": {
+                        tips: [
+                            "Non-STEMI: Strain helps with diagnosis and localization of ischemia",
+                            "Post-MI: Use for remodeling prediction - abnormal strain predicts adverse remodeling",
+                            "Viability assessment: Look for dobutamine response in akinetic segments",
+                            "Peak systolic strain correlates with transmurality of scar",
+                            "Postsystolic shortening may indicate ischemia"
+                        ],
+                        videos: [
+                            {
+                                title: "Strain in Ischemic Heart Disease",
+                                source: "ASE Learning Hub",
+                                url: "https://www.asecho.org/practice-clinical-resources/resource-library/strain-imaging/",
+                                duration: "Module 8",
+                                type: "Case Series",
+                                free: false
+                            }
+                        ]
+                    },
+                    "Valvular Heart Disease": {
+                        tips: [
+                            "Aortic Stenosis (AS): Prognosis in asymptomatic patients - reduced strain predicts earlier symptoms",
+                            "Aortic Regurgitation (AR): Timing of intervention - strain helps identify early LV dysfunction",
+                            "Mitral Regurgitation (MR): Supranormal strain may mask early dysfunction; look for normalization after correction",
+                            "Serial strain assessment guides timing of valve intervention"
+                        ],
+                        videos: [
+                            {
+                                title: "Strain in Valvular Heart Disease",
+                                source: "Cleveland Clinic Valve Summit",
+                                url: "https://www.clevelandclinicmeded.com/self-study-cme/",
+                                duration: "60 min",
+                                type: "CME Course",
+                                free: false
+                            }
+                        ]
+                    },
+                    "Special Populations": {
+                        tips: [
+                            "Athlete's Heart: Distinguish from HCM - strain patterns differ (apical sparing in HCM)",
+                            "Congenital Heart Disease: Essential for RV monitoring in repaired TOF, systemic RV",
+                            "Atrial Fibrillation: LA strain predicts recurrence after ablation and thromboembolic risk",
+                            "Hypertrophic Cardiomyopathy: Apical sparing pattern is characteristic"
+                        ],
+                        videos: [
+                            {
+                                title: "How to Perform Strain in Patients with HCM",
+                                source: "ASE360 Microlesson",
+                                url: "https://www.youtube.com/watch?v=M_AAD9RD3rc",
+                                duration: "10 min",
+                                type: "Microlesson",
+                                free: true
+                            },
+                            {
+                                title: "Joint Echo Conference: Hypertrophic Cardiomyopathy",
+                                source: "ASE360",
+                                url: "https://www.youtube.com/playlist?list=PLp9M4x8WmO70PAoMoKADjNp0vMxcM7gE7",
+                                duration: "62 min",
+                                type: "Conference",
+                                free: true
+                            }
+                        ]
+                    }
+                }
+            },
+            "Future Directions": {
+                color: "from-amber-500 to-orange-400",
+                icon: "TrendingUp",
+                description: "Emerging technologies and future applications in strain imaging",
+                topics: {
+                    "3D Strain": {
+                        tips: [
+                            "Technical resolution needs improvement for routine clinical use",
+                            "More comprehensive assessment of all myocardial segments",
+                            "Better assessment of dyssynchrony in 3 dimensions",
+                            "Currently used mainly in research and select clinical cases"
+                        ],
+                        videos: [
+                            {
+                                title: "3D Strain: Technical Advances and Clinical Applications",
+                                source: "ASE Scientific Sessions",
+                                url: "https://www.youtube.com/c/ASE360/playlists",
+                                duration: "30 min",
+                                type: "Technology Review",
+                                free: true
+                            }
+                        ]
+                    },
+                    "Myocardial Work": {
+                        tips: [
+                            "Pressure-strain loops integrate afterload assessment",
+                            "More load-independent than strain alone",
+                            "Useful in conditions with altered afterload (AS, hypertension)",
+                            "Global work index and global constructive work are key parameters"
+                        ],
+                        videos: [
+                            {
+                                title: "Myocardial Work: From Theory to Practice",
+                                source: "ASE Learning Hub",
+                                url: "https://www.asecho.org/practice-clinical-resources/resource-library/strain-imaging/",
+                                duration: "45 min",
+                                type: "Advanced Concepts",
+                                free: false
+                            }
+                        ]
+                    },
+                    "Mechanical Dispersion": {
+                        tips: [
+                            "Standard deviation of time to peak strain",
+                            "Predicts arrhythmic risk in cardiomyopathies",
+                            "Useful in HCM, dilated cardiomyopathy, and post-MI risk stratification",
+                            "Values > 70-80 ms suggest increased arrhythmic risk"
+                        ],
+                        videos: [
+                            {
+                                title: "Mechanical Dispersion and Arrhythmic Risk",
+                                source: "ASE Textbook Chapter 5",
+                                url: "https://www.asecho.org/practice-clinical-resources/resource-library/strain-imaging/",
+                                duration: "Chapter content",
+                                type: "Educational",
+                                free: false
+                            }
+                        ]
+                    },
+                    "Artificial Intelligence": {
+                        tips: [
+                            "Automated workflows reduce interobserver variability",
+                            "AI-assisted view recognition and quality control",
+                            "PanEcho: Stanford's AI-enabled complete echo interpretation",
+                            "Future: Real-time strain analysis during image acquisition"
+                        ],
+                        videos: [
+                            {
+                                title: "PanEcho: AI-Enabled Echocardiography Interpretation",
+                                source: "Stanford MedAI",
+                                url: "https://www.classcentral.com/course/youtube-medai-148-panecho-toward-complete-ai-enabled-echocardiography-interpretation-gregory-holste-476236",
+                                duration: "40 min",
+                                type: "AI Research",
+                                free: true
+                            },
+                            {
+                                title: "Machine Learning for Cardiac Imaging",
+                                source: "MIT OpenCourseWare",
+                                url: "https://ocw.mit.edu/courses/6-s897-machine-learning-for-healthcare-spring-2019/resources/lecture-10-application-of-machine-learning-to-cardiac-imaging/",
+                                duration: "81 min",
+                                type: "Academic Lecture",
+                                free: true
+                            }
+                        ]
+                    }
+                }
+            }
+        };
+
+        // Icon components
+        const Icons = {
+            Cpu: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3"/><path d="M15 1v3"/><path d="M9 20v3"/><path d="M15 20v3"/><path d="M20 9h3"/><path d="M20 14h3"/><path d="M1 9h3"/><path d="M1 14h3"/></svg>,
+            Activity: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
+            HeartPulse: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>,
+            TrendingUp: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>,
+            Play: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>,
+            BookOpen: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+            Lightbulb: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>,
+            ExternalLink: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
+            CheckCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+            Clock: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+            Award: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>,
+            Menu: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
+            X: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+            Search: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+            GraduationCap: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        };
+
+        const App = () => {
+            const [activeCategory, setActiveCategory] = useState(null);
+            const [activeTopic, setActiveTopic] = useState(null);
+            const [searchQuery, setSearchQuery] = useState("");
+            const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+            const [progress, setProgress] = useState({});
+            const [completedTips, setCompletedTips] = useState({});
+
+            // Load progress from localStorage
+            useEffect(() => {
+                const saved = localStorage.getItem('strainMasterProgress');
+                if (saved) {
+                    setProgress(JSON.parse(saved));
+                }
+                const savedTips = localStorage.getItem('strainMasterTips');
+                if (savedTips) {
+                    setCompletedTips(JSON.parse(savedTips));
+                }
+            }, []);
+
+            // Save progress
+            useEffect(() => {
+                localStorage.setItem('strainMasterProgress', JSON.stringify(progress));
+            }, [progress]);
+
+            useEffect(() => {
+                localStorage.setItem('strainMasterTips', JSON.stringify(completedTips));
+            }, [completedTips]);
+
+            const toggleTip = (category, topic, tipIndex) => {
+                const key = `${category}-${topic}-${tipIndex}`;
+                setCompletedTips(prev => ({
+                    ...prev,
+                    [key]: !prev[key]
+                }));
+            };
+
+            const calculateProgress = (category) => {
+                if (!strainData[category]) return 0;
+                const topics = Object.keys(strainData[category].topics);
+                let totalTips = 0;
+                let completed = 0;
+                
+                topics.forEach(topic => {
+                    const tips = strainData[category].topics[topic].tips;
+                    totalTips += tips.length;
+                    tips.forEach((_, idx) => {
+                        if (completedTips[`${category}-${topic}-${idx}`]) completed++;
+                    });
+                });
+                
+                return totalTips > 0 ? Math.round((completed / totalTips) * 100) : 0;
+            };
+
+            const filteredData = () => {
+                if (!searchQuery) return strainData;
+                
+                const filtered = {};
+                Object.keys(strainData).forEach(category => {
+                    const cat = strainData[category];
+                    const matchingTopics = {};
+                    
+                    Object.keys(cat.topics).forEach(topic => {
+                        const t = cat.topics[topic];
+                        const matches = topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                       t.tips.some(tip => tip.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                                       t.videos.some(v => v.title.toLowerCase().includes(searchQuery.toLowerCase()));
+                        
+                        if (matches) {
+                            matchingTopics[topic] = t;
+                        }
+                    });
+                    
+                    if (Object.keys(matchingTopics).length > 0) {
+                        filtered[category] = { ...cat, topics: matchingTopics };
+                    }
+                });
+                
+                return filtered;
+            };
+
+            const renderIcon = (iconName) => {
+                const Icon = Icons[iconName];
+                return Icon ? <Icon /> : null;
+            };
+
+            return (
+                <div className="min-h-screen bg-slate-900">
+                    {/* Header */}
+                    <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex items-center justify-between h-16">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center pulse-ring">
+                                        <Icons.HeartPulse />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                                            StrainEcho Master
+                                        </h1>
+                                        <p className="text-xs text-slate-400">Clinical Strain Echocardiography 2026</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="hidden md:flex items-center gap-4">
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            placeholder="Search topics, tips, videos..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="w-64 pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-200 placeholder-slate-500"
+                                        />
+                                        <div className="absolute left-3 top-2.5 text-slate-500">
+                                            <Icons.Search />
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                                        <Icons.GraduationCap />
+                                        <span>Free Medical Education</span>
+                                    </div>
+                                </div>
+
+                                <button 
+                                    className="md:hidden p-2 text-slate-400"
+                                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                >
+                                    {mobileMenuOpen ? <Icons.X /> : <Icons.Menu />}
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {/* Mobile Search */}
+                        {mobileMenuOpen && (
+                            <div className="md:hidden px-4 pb-4">
+                                <input
+                                    type="text"
+                                    placeholder="Search..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm"
+                                />
+                            </div>
+                        )}
+                    </header>
+
+                    {/* Main Content */}
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        
+                        {/* Hero Section */}
+                        {!activeCategory && !searchQuery && (
+                            <div className="mb-12 text-center">
+                                <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+                                    Master <span className="gradient-text">Strain Echocardiography</span>
+                                </h2>
+                                <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8">
+                                    Comprehensive learning platform featuring curated educational resources from 
+                                    Stanford, Mayo Clinic, Johns Hopkins, MIT, and ASE. Master the clinical applications 
+                                    of strain imaging with expert tips and high-quality video tutorials.
+                                </p>
+                                <div className="flex flex-wrap justify-center gap-4 text-sm">
+                                    <span className="px-4 py-2 bg-blue-500/20 text-blue-300 rounded-full border border-blue-500/30">
+                                        100% Free Resources
+                                    </span>
+                                    <span className="px-4 py-2 bg-purple-500/20 text-purple-300 rounded-full border border-purple-500/30">
+                                        Expert Curated
+                                    </span>
+                                    <span className="px-4 py-2 bg-emerald-500/20 text-emerald-300 rounded-full border border-emerald-500/30">
+                                        CME Eligible
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Category Grid */}
+                        {!activeCategory && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                                {Object.keys(filteredData()).map((category) => {
+                                    const cat = strainData[category];
+                                    const prog = calculateProgress(category);
+                                    
+                                    return (
+                                        <div
+                                            key={category}
+                                            onClick={() => setActiveCategory(category)}
+                                            className="card-hover cursor-pointer group relative overflow-hidden rounded-2xl bg-slate-800/50 border border-slate-700 p-6"
+                                        >
+                                            <div className={`absolute inset-0 bg-gradient-to-br ${cat.color} opacity-0 group-hover:opacity-10 transition-opacity`} />
+                                            
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div className={`p-3 rounded-xl bg-gradient-to-br ${cat.color} text-white`}>
+                                                    {renderIcon(cat.icon)}
+                                                </div>
+                                                {prog > 0 && (
+                                                    <span className="text-xs font-medium text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-full">
+                                                        {prog}% Complete
+                                                    </span>
+                                                )}
+                                            </div>
+                                            
+                                            <h3 className="text-lg font-semibold text-white mb-2">{category}</h3>
+                                            <p className="text-sm text-slate-400 mb-4 line-clamp-2">{cat.description}</p>
+                                            
+                                            <div className="flex items-center justify-between text-xs text-slate-500">
+                                                <span>{Object.keys(cat.topics).length} Topics</span>
+                                                <span className="group-hover:text-blue-400 transition-colors">Explore →</span>
+                                            </div>
+                                            
+                                            {prog > 0 && (
+                                                <div className="mt-4 h-1 bg-slate-700 rounded-full overflow-hidden">
+                                                    <div 
+                                                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
+                                                        style={{ width: `${prog}%` }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {/* Category Detail View */}
+                        {activeCategory && !activeTopic && (
+                            <div>
+                                <button
+                                    onClick={() => setActiveCategory(null)}
+                                    className="mb-6 flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+                                >
+                                    ← Back to Categories
+                                </button>
+                                
+                                <div className="mb-8">
+                                    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${strainData[activeCategory].color} text-white mb-4`}>
+                                        {renderIcon(strainData[activeCategory].icon)}
+                                        <span className="font-medium">{activeCategory}</span>
+                                    </div>
+                                    <h2 className="text-3xl font-bold text-white mb-2">{activeCategory}</h2>
+                                    <p className="text-slate-400">{strainData[activeCategory].description}</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {Object.keys(strainData[activeCategory].topics).map((topic) => {
+                                        const topicData = strainData[activeCategory].topics[topic];
+                                        const completedCount = topicData.tips.filter((_, idx) => 
+                                            completedTips[`${activeCategory}-${topic}-${idx}`]
+                                        ).length;
+                                        
+                                        return (
+                                            <div
+                                                key={topic}
+                                                onClick={() => setActiveTopic(topic)}
+                                                className="card-hover cursor-pointer rounded-xl bg-slate-800 border border-slate-700 p-6 hover:border-blue-500/50 transition-all"
+                                            >
+                                                <div className="flex items-start justify-between mb-4">
+                                                    <h3 className="text-xl font-semibold text-white">{topic}</h3>
+                                                    {completedCount > 0 && (
+                                                        <span className="flex items-center gap-1 text-xs text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-full">
+                                                            <Icons.CheckCircle />
+                                                            {completedCount}/{topicData.tips.length}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                
+                                                <div className="space-y-3 mb-4">
+                                                    {topicData.tips.slice(0, 2).map((tip, idx) => (
+                                                        <div key={idx} className="flex items-start gap-2 text-sm text-slate-400">
+                                                            <span className="text-blue-400 mt-1">•</span>
+                                                            <span className="line-clamp-1">{tip}</span>
+                                                        </div>
+                                                    ))}
+                                                    {topicData.tips.length > 2 && (
+                                                        <p className="text-xs text-slate-500 pl-4">
+                                                            +{topicData.tips.length - 2} more tips
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                
+                                                <div className="flex items-center gap-4 text-xs text-slate-500">
+                                                    <span className="flex items-center gap-1">
+                                                        <Icons.Play />
+                                                        {topicData.videos.length} Videos
+                                                    </span>
+                                                    <span className="flex items-center gap-1">
+                                                        <Icons.Lightbulb />
+                                                        {topicData.tips.length} Tips
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Topic Detail View */}
+                        {activeTopic && (
+                            <div>
+                                <button
+                                    onClick={() => setActiveTopic(null)}
+                                    className="mb-6 flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+                                >
+                                    ← Back to {activeCategory}
+                                </button>
+
+                                <div className="mb-8">
+                                    <h2 className="text-3xl font-bold text-white mb-2">{activeTopic}</h2>
+                                    <p className="text-slate-400">Master the key concepts and clinical applications</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                    {/* Learning Tips Section */}
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <Icons.Lightbulb />
+                                            <h3 className="text-xl font-semibold text-white">Expert Learning Tips</h3>
+                                        </div>
+                                        
+                                        <div className="space-y-4">
+                                            {strainData[activeCategory].topics[activeTopic].tips.map((tip, idx) => {
+                                                const isCompleted = completedTips[`${activeCategory}-${activeTopic}-${idx}`];
+                                                
+                                                return (
+                                                    <div
+                                                        key={idx}
+                                                        onClick={() => toggleTip(activeCategory, activeTopic, idx)}
+                                                        className={`tip-card p-4 rounded-lg cursor-pointer transition-all ${isCompleted ? 'opacity-60 border-emerald-500' : ''}`}
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isCompleted ? 'bg-emerald-500 border-emerald-500' : 'border-slate-500'}`}>
+                                                                {isCompleted && <Icons.CheckCircle />}
+                                                            </div>
+                                                            <p className={`text-sm ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-200'}`}>
+                                                                {tip}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Video Resources Section */}
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <Icons.Play />
+                                            <h3 className="text-xl font-semibold text-white">Educational Videos</h3>
+                                        </div>
+                                        
+                                        <div className="space-y-4">
+                                            {strainData[activeCategory].topics[activeTopic].videos.map((video, idx) => (
+                                                <a
+                                                    key={idx}
+                                                    href={video.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="video-card block p-5 rounded-xl hover:border-blue-500/50 transition-all group"
+                                                >
+                                                    <div className="flex items-start justify-between mb-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="institution-badge px-3 py-1 rounded-full text-xs font-medium text-white">
+                                                                {video.source}
+                                                            </span>
+                                                            {video.free && (
+                                                                <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                                                    FREE
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <Icons.ExternalLink />
+                                                    </div>
+                                                    
+                                                    <h4 className="text-lg font-medium text-white mb-2 group-hover:text-blue-400 transition-colors">
+                                                        {video.title}
+                                                    </h4>
+                                                    
+                                                    <div className="flex items-center gap-4 text-xs text-slate-400">
+                                                        <span className="flex items-center gap-1">
+                                                            <Icons.Clock />
+                                                            {video.duration}
+                                                        </span>
+                                                        <span className="px-2 py-1 bg-slate-800 rounded text-slate-300">
+                                                            {video.type}
+                                                        </span>
+                                                    </div>
+                                                </a>
+                                            ))}
+                                        </div>
+
+                                        {/* Additional Resources Card */}
+                                        <div className="mt-6 p-5 rounded-xl bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/30">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <Icons.BookOpen />
+                                                <h4 className="font-semibold text-white">Additional Resources</h4>
+                                            </div>
+                                            <ul className="space-y-2 text-sm text-slate-300">
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-blue-400">→</span>
+                                                    <a href="https://www.asecho.org/practice-clinical-resources/resource-library/strain-imaging/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                                                        ASE Strain Imaging Resource Library (Official)
+                                                    </a>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-blue-400">→</span>
+                                                    <a href="https://www.youtube.com/c/ASE360" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                                                        ASE360 YouTube Channel (Free Videos)
+                                                    </a>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-blue-400">→</span>
+                                                    <span>ASE Comprehensive Strain Imaging Textbook (Purchase Required)</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Search Results View */}
+                        {searchQuery && !activeCategory && (
+                            <div>
+                                <div className="mb-6 flex items-center justify-between">
+                                    <h2 className="text-xl font-semibold text-white">
+                                        Search Results for "{searchQuery}"
+                                    </h2>
+                                    <button
+                                        onClick={() => setSearchQuery("")}
+                                        className="text-sm text-slate-400 hover:text-white"
+                                    >
+                                        Clear Search
+                                    </button>
+                                </div>
+                                
+                                {Object.keys(filteredData()).length === 0 ? (
+                                    <div className="text-center py-12 text-slate-500">
+                                        <Icons.Search />
+                                        <p className="mt-4">No results found. Try different keywords.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-8">
+                                        {Object.keys(filteredData()).map(category => (
+                                            <div key={category}>
+                                                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                                    <span className={`w-3 h-3 rounded-full bg-gradient-to-r ${strainData[category].color}`} />
+                                                    {category}
+                                                </h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {Object.keys(filteredData()[category].topics).map(topic => (
+                                                        <div
+                                                            key={topic}
+                                                            onClick={() => {
+                                                                setActiveCategory(category);
+                                                                setActiveTopic(topic);
+                                                                setSearchQuery("");
+                                                            }}
+                                                            className="p-4 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500/50 cursor-pointer transition-all"
+                                                        >
+                                                            <h4 className="font-medium text-white mb-2">{topic}</h4>
+                                                            <p className="text-sm text-slate-400 line-clamp-2">
+                                                                {filteredData()[category].topics[topic].tips[0]}
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="border-t border-slate-800 mt-16 py-8 bg-slate-900/50">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                                <div className="text-sm text-slate-500">
+                                    <p>Educational resources curated from leading institutions:</p>
+                                    <p className="mt-1">Stanford Medicine • Mayo Clinic • Cleveland Clinic • MIT • ASE</p>
+                                </div>
+                                <div className="flex items-center gap-4 text-sm text-slate-600">
+                                    <span>© 2026 StrainEcho Master</span>
+                                    <span>•</span>
+                                    <span>Open Source Education</span>
+                                </div>
+                            </div>
+                            <div className="mt-4 text-xs text-slate-600 text-center md:text-left">
+                                <p>Disclaimer: This educational platform is for training purposes only. Clinical decisions should always be based on formal training and institutional protocols.</p>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
